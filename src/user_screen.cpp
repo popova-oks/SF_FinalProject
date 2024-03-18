@@ -6,13 +6,12 @@
 #include <QDialog>
 
 UserScreen::UserScreen(QWidget *parent) : QDialog(parent) {
+    // Установка начального заголовка
+    setWindowTitle("Login");
+
     // Создаем виджеты, которые будут добавлены в QStackedWidget
      ptopLogin_ = new QWidget;
      ptopSignin_ = new QWidget;
-
-     // Устанавливаем заголовки для виджетов
-     ptopLogin_->setWindowTitle("Login");
-     ptopSignin_->setWindowTitle("Sign in");
 
      // Создаем виджеты для ввода логина и пароля для каждого экрана
      loginLineEditLogin_  = new QLineEdit;
@@ -46,8 +45,8 @@ UserScreen::UserScreen(QWidget *parent) : QDialog(parent) {
      connect(pcmdOkSignin, SIGNAL(clicked()), this, SLOT(accept()));
      connect(pcmdCancelSignin, SIGNAL(clicked()), this, SLOT(reject()));
 
-     QPushButton *button1 = new QPushButton("Log in");
-     QPushButton *button2 = new QPushButton("Registration");
+     QPushButton *button1 = new QPushButton("Go to Login");
+     QPushButton *button2 = new QPushButton("Go to Sign in");
 
      // Создаем макеты для каждого экрана
      QGridLayout* ptopLayoutLogin = new QGridLayout();
@@ -82,13 +81,9 @@ UserScreen::UserScreen(QWidget *parent) : QDialog(parent) {
      stackedWidget_->addWidget(ptopLogin_);
      stackedWidget_->addWidget(ptopSignin_);
 
-     // Подключаем сигналы и слоты для переключения между страницами
-     QObject::connect(button1, &QPushButton::clicked, [this]() {
-         stackedWidget_->setCurrentIndex(0);
-     });
-     QObject::connect(button2, &QPushButton::clicked, [this]() {
-         stackedWidget_->setCurrentIndex(1);
-     });
+     // Подключение сигналов к слотам
+     connect(button1, &QPushButton::clicked, this, &UserScreen::onLoginButtonClicked);
+     connect(button2, &QPushButton::clicked, this, &UserScreen::onSignInButtonClicked);
 
      // Устанавливаем начальную страницу
      stackedWidget_->setCurrentWidget(ptopLogin_);
@@ -99,7 +94,14 @@ UserScreen::UserScreen(QWidget *parent) : QDialog(parent) {
       setLayout(mainLayout);
 }
 
-UserScreen::~UserScreen()
+void UserScreen::onLoginButtonClicked()
 {
+    stackedWidget_->setCurrentIndex(0); // Установка виджета "Log in"
+    setWindowTitle("Login"); // Изменение заголовка
+}
 
+void UserScreen::onSignInButtonClicked()
+{
+    stackedWidget_->setCurrentIndex(1); // Установка виджета "Sign in"
+    setWindowTitle("Sign in"); // Изменение заголовка
 }

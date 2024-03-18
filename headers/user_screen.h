@@ -8,8 +8,8 @@ class UserScreen : public QDialog
 {
     Q_OBJECT
  public:
-    UserScreen(QWidget *parent = nullptr);
-    ~UserScreen();
+    explicit UserScreen(QWidget *parent = nullptr);
+    ~UserScreen() {}
  private:
     QWidget *ptopLogin_;
     QWidget *ptopSignin_;
@@ -19,6 +19,9 @@ class UserScreen : public QDialog
     QLineEdit *passwordLineEditSignin_;
     QLineEdit *confPasswordLineEditSignin_;
     QStackedWidget *stackedWidget_;
+ private slots:
+    void onLoginButtonClicked();
+    void onSignInButtonClicked();
 
 };
 
