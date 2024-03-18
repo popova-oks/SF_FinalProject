@@ -1,22 +1,26 @@
 #include "../headers/widget.h"
+#include "../headers/chat.h"
 #include <QMenu>
 
 
-Widget::Widget(QWidget *parent, std::shared_ptr<Chat> chatPtr)
+Widget::Widget(QWidget *parent, Chat* chatPtr)
 : QWidget::QWidget(parent)
 {
     // создаем базу данных
     if (chatPtr_) {
         chatPtr_ = chatPtr;
     }
-    chatPtr_ = std::make_shared<Chat>();
+    chatPtr_ = new Chat();
 
     add_items();
     add_actions();
 }
 
 Widget::~Widget() {
-
+    if (chatPtr_) {
+        delete chatPtr_;
+        chatPtr_ = nullptr;
+    }
 }
 
 bool Widget::update_user() {
@@ -25,10 +29,19 @@ bool Widget::update_user() {
     if (result == QDialog::Rejected) {
         return false;
     }
+    QString curr_login;
+    QString curr_password;
     if (result == QDialog::Accepted) {
-        //getUserID()
-        //getUserName()
-        //getLogin());
+        curr_login = userScreen.get_login();
+        curr_password = userScreen.get_password();
+        if (curr_login.isEmpty() || curr_password.isEmpty()) {
+            return false;
+        }
+    }
+    if (chatPtr_) {
+        if (chatPtr_->addUser(curr_login.toStdString(), curr_password.toStdString())) {
+            curr_user_->setText(curr_login);
+        }
     }
     return true;
 }
@@ -40,18 +53,20 @@ bool Widget::update_messages()
 
 void Widget::add_items()
 {    
-    // создаем меню верхнего уровня
-    mnuBar_ = new QMenuBar();
-    pmnu_ = new QMenu ( "&Registration");
+    QLabel *label = new QLabel("Current user: ");
+    QFont font("Arial", 14); // Создаем новый объект шрифта с заданным размером
+    label->setFont(font); // Устанавливаем шрифт для QLabel
 
-    pmnu_->addAction("&AЬout Qt", this, SLOT(aboutQt()), Qt::CTRL+Qt::Key_Q);
-    pmnu_->addSeparator();
-    //pmnu->addAction("&Exit", &арр, SLOT(quit()));
-    mnuBar_->addMenu(pmnu_);
+    curr_user_ = new QLabel("no user");
+    curr_user_->setFont(font);
+    curr_user_->setStyleSheet("color: blue;");
 
-    grid_ = new QGridLayout(this);
-    grid_->addWidget(mnuBar_, 0, 0, 1, 2);
-    setLayout(grid_);
+    label->setBuddy(curr_user_);
+
+    QGridLayout *grid = new QGridLayout(this);
+    grid->addWidget(label, 1, 0);
+    grid->addWidget(curr_user_, 1, 1);
+    setLayout(grid);
 }
 
 void Widget::add_actions()

@@ -4,6 +4,8 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QDialog>
+#include <QMessageBox>
+#include "../headers/sha1.h"
 
 UserScreen::UserScreen(QWidget *parent) : QDialog(parent) {
     // Установка начального заголовка
@@ -14,11 +16,11 @@ UserScreen::UserScreen(QWidget *parent) : QDialog(parent) {
      ptopSignin_ = new QWidget;
 
      // Создаем виджеты для ввода логина и пароля для каждого экрана
-     loginLineEditLogin_  = new QLineEdit;
-     passwordLineEditLogin_ = new QLineEdit;
-     loginLineEditSignin_  = new QLineEdit;
-     passwordLineEditSignin_ = new QLineEdit;
-     confPasswordLineEditSignin_ = new QLineEdit;
+     loginLineEditLogIn_  = new QLineEdit (ptopLogin_);
+     passwordLineEditLogIn_ = new QLineEdit (ptopLogin_);
+     loginLineEditSignIn_  = new QLineEdit (ptopSignin_);
+     passwordLineEditSignIn_ = new QLineEdit (ptopSignin_);
+     confPasswordLineEditSignIn_ = new QLineEdit (ptopSignin_);
 
      // Создаем метки для каждого экрана
      QLabel* lblLoginLogin  = new QLabel("&Login: ");
@@ -28,22 +30,25 @@ UserScreen::UserScreen(QWidget *parent) : QDialog(parent) {
      QLabel* lblConfPassSignin = new QLabel("&Confirm password: ");
 
      // Связываем метки с соответствующими полями ввода
-     lblLoginLogin->setBuddy(loginLineEditLogin_);
-     lblPasswordLogin->setBuddy(passwordLineEditLogin_);
-     lblLoginSignin->setBuddy(loginLineEditSignin_);
-     lblPasswordSignin->setBuddy(passwordLineEditSignin_);
-     lblConfPassSignin->setBuddy(confPasswordLineEditSignin_);
+     lblLoginLogin->setBuddy(loginLineEditLogIn_);
+     lblPasswordLogin->setBuddy(passwordLineEditLogIn_);
+     lblLoginSignin->setBuddy(loginLineEditSignIn_);
+     lblPasswordSignin->setBuddy(passwordLineEditSignIn_);
+     lblConfPassSignin->setBuddy(confPasswordLineEditSignIn_);
 
      // Создаем кнопки для каждого экрана
-     QPushButton *pcmdOkLogin = new QPushButton("&Ok");
-     QPushButton *pcmdCancelLogin = new QPushButton("&Cancel");
-     QPushButton *pcmdOkSignin = new QPushButton("&Ok");
-     QPushButton *pcmdCancelSignin = new QPushButton("&Cancel");
+     QPushButton *pcmdOkLogIn = new QPushButton("&Ok");
+     QPushButton *pcmdCancelLogIn = new QPushButton("&Cancel");
+     QPushButton *pcmdOkSignIn = new QPushButton("&Ok");
+     QPushButton *pcmdCancelSignIn = new QPushButton("&Cancel");
 
-     connect(pcmdOkLogin, SIGNAL(clicked()), this, SLOT(accept()));
-     connect(pcmdCancelLogin, SIGNAL(clicked()), this, SLOT(reject()));
-     connect(pcmdOkSignin, SIGNAL(clicked()), this, SLOT(accept()));
-     connect(pcmdCancelSignin, SIGNAL(clicked()), this, SLOT(reject()));
+     //connect(pcmdOkLogin, SIGNAL(clicked()), this, SLOT(accept()));
+     connect(pcmdOkLogIn, SIGNAL(clicked()), this, SLOT(onLoggedIn()));
+     connect(pcmdCancelLogIn, SIGNAL(clicked()), this, SLOT(reject()));
+
+     //connect(pcmdOkSignin, SIGNAL(clicked()), this, SLOT(accept()));
+     connect(pcmdOkSignIn, SIGNAL(clicked()), this, SLOT(onSignedIn()));
+     connect(pcmdCancelSignIn, SIGNAL(clicked()), this, SLOT(reject()));
 
      QPushButton *button1 = new QPushButton("Go to Login");
      QPushButton *button2 = new QPushButton("Go to Sign in");
@@ -55,27 +60,27 @@ UserScreen::UserScreen(QWidget *parent) : QDialog(parent) {
      // Добавляем элементы в макет экрана входа
      ptopLayoutLogin->addWidget(lblLoginLogin, 1, 0);
      ptopLayoutLogin->addWidget(lblPasswordLogin, 2, 0);
-     ptopLayoutLogin->addWidget(loginLineEditLogin_, 1, 1);
-     ptopLayoutLogin->addWidget(passwordLineEditLogin_, 2, 1);
-     ptopLayoutLogin->addWidget(pcmdOkLogin, 3, 1);
-     ptopLayoutLogin->addWidget(pcmdCancelLogin, 3, 2);
+     ptopLayoutLogin->addWidget(loginLineEditLogIn_, 1, 1);
+     ptopLayoutLogin->addWidget(passwordLineEditLogIn_, 2, 1);
+     ptopLayoutLogin->addWidget(pcmdOkLogIn, 3, 1);
+     ptopLayoutLogin->addWidget(pcmdCancelLogIn, 3, 2);
      ptopLayoutLogin->addWidget(button2, 3, 3);
 
      // Добавляем элементы в макет экрана регистрации
      ptopLayoutSignin->addWidget(lblLoginSignin, 1, 0);
      ptopLayoutSignin->addWidget(lblPasswordSignin, 2, 0);
      ptopLayoutSignin->addWidget(lblConfPassSignin, 3, 0);
-     ptopLayoutSignin->addWidget(loginLineEditSignin_, 1, 1);
-     ptopLayoutSignin->addWidget(passwordLineEditSignin_, 2, 1);
-     ptopLayoutSignin->addWidget(confPasswordLineEditSignin_, 3, 1);
-     ptopLayoutSignin->addWidget(pcmdOkSignin, 4, 1);
-     ptopLayoutSignin->addWidget(pcmdCancelSignin, 4, 2);
+     ptopLayoutSignin->addWidget(loginLineEditSignIn_, 1, 1);
+     ptopLayoutSignin->addWidget(passwordLineEditSignIn_, 2, 1);
+     ptopLayoutSignin->addWidget(confPasswordLineEditSignIn_, 3, 1);
+     ptopLayoutSignin->addWidget(pcmdOkSignIn, 4, 1);
+     ptopLayoutSignin->addWidget(pcmdCancelSignIn, 4, 2);
      ptopLayoutSignin->addWidget(button1, 4, 3);
 
      // Устанавливаем макеты для каждого экрана
      ptopLogin_->setLayout(ptopLayoutLogin);
      ptopSignin_->setLayout(ptopLayoutSignin);
-     stackedWidget_ = new QStackedWidget;
+     stackedWidget_ = new QStackedWidget (this);
 
      // Добавляем созданные виджеты в QStackedWidget
      stackedWidget_->addWidget(ptopLogin_);
@@ -94,6 +99,31 @@ UserScreen::UserScreen(QWidget *parent) : QDialog(parent) {
       setLayout(mainLayout);
 }
 
+UserScreen::~UserScreen() {
+    if (ptopLogin_) {
+        delete ptopLogin_;
+        ptopLogin_ = nullptr;
+    }
+    if (ptopSignin_) {
+        delete ptopSignin_;
+        ptopSignin_ = nullptr;
+    }
+    if (stackedWidget_) {
+        delete stackedWidget_;
+        stackedWidget_ = nullptr;
+    }
+}
+
+const QString &UserScreen::get_login() const
+{
+    return login_;
+}
+
+const QString &UserScreen::get_password() const
+{
+    return password_;
+}
+
 void UserScreen::onLoginButtonClicked()
 {
     stackedWidget_->setCurrentIndex(0); // Установка виджета "Log in"
@@ -105,3 +135,28 @@ void UserScreen::onSignInButtonClicked()
     stackedWidget_->setCurrentIndex(1); // Установка виджета "Sign in"
     setWindowTitle("Sign in"); // Изменение заголовка
 }
+
+void UserScreen::onLoggedIn()
+{
+    login_ = loginLineEditLogIn_->text();
+    std::string password = passwordLineEditSignIn_->text().toStdString();
+    password_ = sha1(password).c_str();
+    accept();
+}
+
+void UserScreen::onSignedIn()
+{
+    if (passwordLineEditSignIn_->text()
+            != confPasswordLineEditSignIn_->text()){
+        QMessageBox::critical(this,
+                              tr("Error"),
+                              tr("Password not match") + "!");
+        reject();
+    } else {
+        login_ = loginLineEditSignIn_->text();
+        std::string password = passwordLineEditSignIn_->text().toStdString();
+        password_ = sha1(password).c_str();
+        accept();
+    }
+}
+

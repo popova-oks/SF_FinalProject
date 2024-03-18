@@ -21,8 +21,8 @@ private:
 
     Ui::MainWindow *ui;
     Widget *widget_;
-    QMenuBar *menuBar_;
-    QMenu* pmnu_;
+    //QMenuBar *menuBar_;
+    //QMenu* pmnu_;
 
 private slots:
     void on_actionOpenClient_triggered();

@@ -22,8 +22,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::add_items()
 {
-    menuBar_ = new QMenuBar(this);
-    pmnu_ = new QMenu("&Menu");
+    QMenuBar *menuBar_ = new QMenuBar(this);
+    menuBar_->setStyleSheet("color: red; font-size: 14pt; font-weight: bold;");
+
+    QMenu *pmnu_ = new QMenu("&Menu");
 
     pmnu_->addAction("&Open another client", this, &MainWindow::on_actionOpenClient_triggered, Qt::CTRL+Qt::Key_O);
     pmnu_->addAction("&Close this client", this, &MainWindow::on_actionCloseThisClient_triggered, Qt::CTRL+Qt::Key_C);
