@@ -39,8 +39,14 @@ bool Widget::update_user() {
         }
     }
     if (chatPtr_) {
-        if (chatPtr_->addUser(curr_login.toStdString(), curr_password.toStdString())) {
-            curr_user_->setText(curr_login);
+        if (userScreen.get_index() == 1) {
+            if (chatPtr_->addUser(curr_login.toStdString(), curr_password.toStdString())) {
+                curr_user_->setText(curr_login);
+            }
+        } else if (userScreen.get_index() == 0) {
+            if (chatPtr_->attachUser(curr_login.toStdString(), curr_password.toStdString())) {
+                curr_user_->setText(curr_login);
+            }
         }
     }
     return true;

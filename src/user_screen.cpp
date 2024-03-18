@@ -18,9 +18,13 @@ UserScreen::UserScreen(QWidget *parent) : QDialog(parent) {
      // Создаем виджеты для ввода логина и пароля для каждого экрана
      loginLineEditLogIn_  = new QLineEdit (ptopLogin_);
      passwordLineEditLogIn_ = new QLineEdit (ptopLogin_);
+     passwordLineEditLogIn_->setEchoMode(QLineEdit::Password);
+
      loginLineEditSignIn_  = new QLineEdit (ptopSignin_);
      passwordLineEditSignIn_ = new QLineEdit (ptopSignin_);
+     passwordLineEditSignIn_->setEchoMode(QLineEdit::Password);
      confPasswordLineEditSignIn_ = new QLineEdit (ptopSignin_);
+     confPasswordLineEditSignIn_->setEchoMode(QLineEdit::Password);
 
      // Создаем метки для каждого экрана
      QLabel* lblLoginLogin  = new QLabel("&Login: ");
@@ -124,15 +128,22 @@ const QString &UserScreen::get_password() const
     return password_;
 }
 
+int UserScreen::get_index() const
+{
+    return index_;
+}
+
 void UserScreen::onLoginButtonClicked()
 {
     stackedWidget_->setCurrentIndex(0); // Установка виджета "Log in"
+    index_ = 0;
     setWindowTitle("Login"); // Изменение заголовка
 }
 
 void UserScreen::onSignInButtonClicked()
 {
     stackedWidget_->setCurrentIndex(1); // Установка виджета "Sign in"
+    index_ = 1;
     setWindowTitle("Sign in"); // Изменение заголовка
 }
 

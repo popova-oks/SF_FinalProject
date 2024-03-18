@@ -12,9 +12,12 @@ class UserScreen : public QDialog
     ~UserScreen();
     const QString &get_login() const;
     const QString &get_password() const;
+    int get_index() const;
+
 private:
     QString login_;
     QString password_;
+    int index_ = 0;
 
     QWidget *ptopLogin_;
     QWidget *ptopSignin_;
