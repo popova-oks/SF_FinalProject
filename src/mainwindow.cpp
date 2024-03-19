@@ -27,8 +27,16 @@ void MainWindow::add_items()
 
     QMenu *pmnu_ = new QMenu("&Menu");
 
-    pmnu_->addAction("&Open another client", this, &MainWindow::on_actionOpenClient_triggered, Qt::CTRL+Qt::Key_O);
-    pmnu_->addAction("&Close this client", this, &MainWindow::on_actionCloseThisClient_triggered, Qt::CTRL+Qt::Key_C);
+    pmnu_->addAction("&Log in or sign in", this, &MainWindow::on_actionOpenClient_triggered, Qt::CTRL+Qt::Key_L);
+    pmnu_->addAction("&Close this client", this, &MainWindow::on_actionCloseThisClient_triggered, Qt::CTRL+Qt::Key_E);
+
+    pmnu_->addSeparator();
+    QMenu* adminSuЬMenu = new QMenu("&Admin", pmnu_);
+    pmnu_->addMenu(adminSuЬMenu);
+    adminSuЬMenu->addAction("&Block this client", this, &MainWindow::on_actionBlockThisClient_triggered,
+                            Qt::CTRL+Qt::Key_B);
+    adminSuЬMenu->addAction("&Unblock the client", this, &MainWindow::on_actionUnblockClient_triggered,
+                            Qt::CTRL+Qt::Key_U);
 
     pmnu_->addSeparator();
     pmnu_->addAction("&Quit", this, &MainWindow::close, Qt::CTRL+Qt::Key_Q);
@@ -38,15 +46,35 @@ void MainWindow::add_items()
 }
 
 void MainWindow::on_actionOpenClient_triggered()
-{
-    auto result = widget_->update_user();
-    if (result) {
-       widget_->update_messages();
+{    
+    if (widget_->update_user()) {
+        widget_->update_startScreen();
     }
 }
 
 void MainWindow::on_actionCloseThisClient_triggered()
 {
-    return;
+    if (widget_->detach_user()) {
+        QString none = "no user";
+        widget_->update_curr_user(none);
+        widget_->update_startScreen();
+
+    }
+}
+
+void MainWindow::on_actionBlockThisClient_triggered()
+{
+    if (widget_->block_user()) {
+        QString none = "no user";
+        widget_->update_curr_user(none);
+        widget_->update_startScreen();
+    }
+}
+
+void MainWindow::on_actionUnblockClient_triggered()
+{
+    if (widget_->unblock_user()) {
+        widget_->update_startScreen();
+    }
 }
 

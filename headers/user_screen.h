@@ -8,8 +8,11 @@ class UserScreen : public QDialog
 {
     Q_OBJECT
  public:
-    explicit UserScreen(QWidget *parent = nullptr);
+    explicit UserScreen(QWidget *parent = nullptr) ;
     ~UserScreen();
+    void login_form ();
+    void close_form (const QString &client);
+    void block_form (const QString &client);
     const QString &get_login() const;
     const QString &get_password() const;
     int get_index() const;
@@ -19,15 +22,15 @@ private:
     QString password_;
     int index_ = 0;
 
-    QWidget *ptopLogin_;
-    QWidget *ptopSignin_;
+    QWidget *ptopWidget1_;
+    QWidget *ptopWidget2_;
     QLineEdit *loginLineEditLogIn_ ;
     QLineEdit *passwordLineEditLogIn_;
     QLineEdit *loginLineEditSignIn_;
     QLineEdit *passwordLineEditSignIn_;
     QLineEdit *confPasswordLineEditSignIn_;
-
     QStackedWidget *stackedWidget_;
+
  private slots:
     void onLoginButtonClicked();
     void onSignInButtonClicked();

@@ -7,23 +7,38 @@
 #include <QMessageBox>
 #include "../headers/sha1.h"
 
-UserScreen::UserScreen(QWidget *parent) : QDialog(parent) {
+UserScreen::UserScreen(QWidget *parent)
+    : QDialog(parent)
+    , ptopWidget1_ {nullptr}
+    , ptopWidget2_ {nullptr}
+{}
+
+UserScreen::~UserScreen(){
+    if (ptopWidget1_ != nullptr) {
+        delete ptopWidget1_;
+    }
+    if (ptopWidget2_ != nullptr) {
+        delete ptopWidget2_;
+    }
+}
+
+void UserScreen::login_form() {
     // Установка начального заголовка
     setWindowTitle("Login");
 
     // Создаем виджеты, которые будут добавлены в QStackedWidget
-     ptopLogin_ = new QWidget;
-     ptopSignin_ = new QWidget;
+     ptopWidget1_ = new QWidget;
+     ptopWidget2_ = new QWidget;
 
      // Создаем виджеты для ввода логина и пароля для каждого экрана
-     loginLineEditLogIn_  = new QLineEdit (ptopLogin_);
-     passwordLineEditLogIn_ = new QLineEdit (ptopLogin_);
+     loginLineEditLogIn_  = new QLineEdit (ptopWidget1_);
+     passwordLineEditLogIn_ = new QLineEdit (ptopWidget1_);
      passwordLineEditLogIn_->setEchoMode(QLineEdit::Password);
 
-     loginLineEditSignIn_  = new QLineEdit (ptopSignin_);
-     passwordLineEditSignIn_ = new QLineEdit (ptopSignin_);
+     loginLineEditSignIn_  = new QLineEdit (ptopWidget2_);
+     passwordLineEditSignIn_ = new QLineEdit (ptopWidget2_);
      passwordLineEditSignIn_->setEchoMode(QLineEdit::Password);
-     confPasswordLineEditSignIn_ = new QLineEdit (ptopSignin_);
+     confPasswordLineEditSignIn_ = new QLineEdit (ptopWidget2_);
      confPasswordLineEditSignIn_->setEchoMode(QLineEdit::Password);
 
      // Создаем метки для каждого экрана
@@ -58,8 +73,8 @@ UserScreen::UserScreen(QWidget *parent) : QDialog(parent) {
      QPushButton *button2 = new QPushButton("Go to Sign in");
 
      // Создаем макеты для каждого экрана
-     QGridLayout* ptopLayoutLogin = new QGridLayout();
-     QGridLayout* ptopLayoutSignin = new QGridLayout();
+     QGridLayout* ptopLayoutLogin = new QGridLayout(ptopWidget1_);
+     QGridLayout* ptopLayoutSignin = new QGridLayout(ptopWidget2_);
 
      // Добавляем элементы в макет экрана входа
      ptopLayoutLogin->addWidget(lblLoginLogin, 1, 0);
@@ -82,40 +97,124 @@ UserScreen::UserScreen(QWidget *parent) : QDialog(parent) {
      ptopLayoutSignin->addWidget(button1, 4, 3);
 
      // Устанавливаем макеты для каждого экрана
-     ptopLogin_->setLayout(ptopLayoutLogin);
-     ptopSignin_->setLayout(ptopLayoutSignin);
+     ptopWidget1_->setLayout(ptopLayoutLogin);
+     ptopWidget2_->setLayout(ptopLayoutSignin);
      stackedWidget_ = new QStackedWidget (this);
 
      // Добавляем созданные виджеты в QStackedWidget
-     stackedWidget_->addWidget(ptopLogin_);
-     stackedWidget_->addWidget(ptopSignin_);
+     stackedWidget_->addWidget(ptopWidget1_);
+     stackedWidget_->addWidget(ptopWidget2_);
 
      // Подключение сигналов к слотам
      connect(button1, &QPushButton::clicked, this, &UserScreen::onLoginButtonClicked);
      connect(button2, &QPushButton::clicked, this, &UserScreen::onSignInButtonClicked);
 
      // Устанавливаем начальную страницу
-     stackedWidget_->setCurrentWidget(ptopLogin_);
+     stackedWidget_->setCurrentWidget(ptopWidget1_);
 
-     // Отобразим окно
+      // Отобразим окно
       QVBoxLayout * mainLayout = new QVBoxLayout(this);
       mainLayout->addWidget(stackedWidget_);
       setLayout(mainLayout);
 }
 
-UserScreen::~UserScreen() {
-    if (ptopLogin_) {
-        delete ptopLogin_;
-        ptopLogin_ = nullptr;
-    }
-    if (ptopSignin_) {
-        delete ptopSignin_;
-        ptopSignin_ = nullptr;
-    }
-    if (stackedWidget_) {
-        delete stackedWidget_;
-        stackedWidget_ = nullptr;
-    }
+void UserScreen::close_form(const QString &client)
+{
+    // Установка заголовка
+    setWindowTitle("Detach from the chat");
+
+    // Создаем виджеты, которые будут добавлены в форму
+     ptopWidget1_ = new QWidget;
+
+     // Создаем метки для каждого экрана
+     QString message = "Current user: " + client;
+     QLabel* label1  = new QLabel(message);
+     QLabel* label2  = new QLabel("Do you want to leave the chat? ");
+     label1->setStyleSheet("color: blue; font-size: 12pt; font-weight: bold;");
+     label2->setStyleSheet("color: red; font-size: 12pt; font-weight: bold;");
+
+     // Создаем кнопки
+     QPushButton *pcmdOk = new QPushButton("&Ok");
+     QPushButton *pcmdCancel = new QPushButton("&Cancel");
+
+     connect(pcmdOk, SIGNAL(clicked()), this, SLOT(accept()));
+     connect(pcmdCancel, SIGNAL(clicked()), this, SLOT(reject()));
+
+     // Создаем макеты для каждого экрана
+     QGridLayout* ptopLayout = new QGridLayout();
+
+     // Добавляем элементы в макет экрана входа
+     ptopLayout->addWidget(label1, 0, 0);
+     ptopLayout->addWidget(label2, 1, 0);
+     ptopLayout->addWidget(pcmdOk, 2, 1);
+     ptopLayout->addWidget(pcmdCancel, 2, 2);
+
+     // Устанавливаем макеты для каждого экрана
+     ptopWidget1_->setLayout(ptopLayout);
+
+     // Отобразим окно
+      QVBoxLayout * mainLayout = new QVBoxLayout(this);
+      mainLayout->addWidget(ptopWidget1_);
+      setLayout(mainLayout);
+}
+
+void UserScreen::block_form(const QString &client)
+{
+     // Установка заголовка
+     setWindowTitle("Block or unblock this client");
+
+     //Создаем виджеты, которые будут добавлены в форму
+     ptopWidget1_ = new QWidget;
+
+     // Создаем метки для каждого экрана
+     QString message = "The user: " + client;
+     QLabel* label1  = new QLabel(message);
+     label1->setStyleSheet("color: red; font-size: 12pt; font-weight: bold;");
+     QLabel* label2  = new QLabel("Enter password for admin! ");
+     label2->setStyleSheet("font-size: 12pt; font-weight: bold;");
+
+     // Создаем виджеты для ввода логина и пароля для каждого экрана
+     loginLineEditLogIn_  = new QLineEdit (ptopWidget1_);
+     loginLineEditLogIn_->setText("admin");
+     passwordLineEditLogIn_ = new QLineEdit (ptopWidget1_);
+     passwordLineEditLogIn_->setEchoMode(QLineEdit::Password);
+
+     // Создаем метки для каждого экрана
+     QLabel* lblLoginLogin  = new QLabel("&Login: ");
+     QLabel* lblPasswordLogin  = new QLabel("&Password: ");
+
+     // Связываем метки с соответствующими полями ввода
+     lblLoginLogin->setBuddy(loginLineEditLogIn_);
+     lblPasswordLogin->setBuddy(passwordLineEditLogIn_);
+
+     // Создаем кнопки для каждого экрана
+     QPushButton *pcmdOkLogIn = new QPushButton("&Ok");
+     QPushButton *pcmdCancelLogIn = new QPushButton("&Cancel");
+
+     //connect(pcmdOkLogin, SIGNAL(clicked()), this, SLOT(accept()));
+     connect(pcmdOkLogIn, SIGNAL(clicked()), this, SLOT(onLoggedIn()));
+     connect(pcmdCancelLogIn, SIGNAL(clicked()), this, SLOT(reject()));
+
+     // Создаем макеты для каждого экрана
+     QGridLayout* ptopLayoutLogin = new QGridLayout();
+
+     // Добавляем элементы в макет экрана входа
+     ptopLayoutLogin->addWidget(label1, 0, 0);
+     ptopLayoutLogin->addWidget(label2, 1, 0);
+     ptopLayoutLogin->addWidget(lblLoginLogin, 2, 0);
+     ptopLayoutLogin->addWidget(lblPasswordLogin, 3, 0);
+     ptopLayoutLogin->addWidget(loginLineEditLogIn_, 2, 1);
+     ptopLayoutLogin->addWidget(passwordLineEditLogIn_, 3, 1);
+     ptopLayoutLogin->addWidget(pcmdOkLogIn, 4, 1);
+     ptopLayoutLogin->addWidget(pcmdCancelLogIn, 4, 2);
+
+     // Устанавливаем макеты для каждого экрана
+     ptopWidget1_->setLayout(ptopLayoutLogin);
+
+     // Отобразим окно
+      QVBoxLayout * mainLayout = new QVBoxLayout(this);
+      mainLayout->addWidget(ptopWidget1_);
+      setLayout(mainLayout);
 }
 
 const QString &UserScreen::get_login() const
@@ -150,7 +249,7 @@ void UserScreen::onSignInButtonClicked()
 void UserScreen::onLoggedIn()
 {
     login_ = loginLineEditLogIn_->text();
-    std::string password = passwordLineEditSignIn_->text().toStdString();
+    std::string password = passwordLineEditLogIn_->text().toStdString();
     password_ = sha1(password).c_str();
     accept();
 }

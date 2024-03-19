@@ -27,5 +27,7 @@ private:
 private slots:
     void on_actionOpenClient_triggered();
     void on_actionCloseThisClient_triggered();
+    void on_actionBlockThisClient_triggered();
+    void on_actionUnblockClient_triggered();
 };
 #endif // MAINWINDOW_H

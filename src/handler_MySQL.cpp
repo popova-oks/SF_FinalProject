@@ -1,5 +1,14 @@
 #include "../headers/handler_MySQL.h"
 
+Handler_MySQL::Handler_MySQL() {
+    if (!createConnection()) {
+        qDebug() << "Failed to create database";
+    }
+    if (!createTables()) {
+        qDebug() << "Failed to create tables";
+    }
+}
+
 bool Handler_MySQL::createConnection(){
     QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
     db.setUserName("oxana");
@@ -7,13 +16,12 @@ bool Handler_MySQL::createConnection(){
     db.setPassword("OxanA");
 
     // Устанавливаем базу данных "test2" как активную
-    db.setDatabaseName("DB_Project");
+    db.setDatabaseName("SFProject");
 
     if (!db.open()) {
         qDebug() << "Cannot open database:" << db.lastError();
         return false;
     }
-
     qDebug() << "Database created successfully";
     return true;
 }
@@ -48,7 +56,56 @@ bool Handler_MySQL::createTables()
     return true;
 }
 
-bool Handler_MySQL::add_User(const QString login, const QString password)
+QStringList Handler_MySQL::createListUsers()
+{
+    QSqlQuery query;
+    QString queryStr = "SELECT login FROM users WHERE attach=:attach AND block=:block";
+    query.prepare(queryStr);
+    query.bindValue(":attach", true);
+    query.bindValue(":block", false);
+
+    QStringList users;
+    if (query.exec()) {
+        while (query.next()) {
+           users.append(query.value(0).toString());
+        }
+     }
+    return users;
+}
+
+QStringList Handler_MySQL::createListBlockUsers()
+{
+    QSqlQuery query;
+    QString queryStr = "SELECT login FROM users WHERE block=:block";
+    query.prepare(queryStr);
+    query.bindValue(":block", true);
+
+    QStringList users;
+    if (query.exec()) {
+        while (query.next()) {
+           users.append(query.value(0).toString());
+        }
+     }
+    return users;
+}
+
+QStringList Handler_MySQL::createListUnblockUsers()
+{
+    QSqlQuery query;
+    QString queryStr = "SELECT login FROM users WHERE block=:block";
+    query.prepare(queryStr);
+    query.bindValue(":block", false);
+
+    QStringList users;
+    if (query.exec()) {
+        while (query.next()) {
+           users.append(query.value(0).toString());
+        }
+     }
+    return users;
+}
+
+bool Handler_MySQL::add_user(const QString &login, const QString &password)
 {
     if (is_block(login)) {
         qDebug() << "The user was blocked";
@@ -75,7 +132,7 @@ bool Handler_MySQL::add_User(const QString login, const QString password)
     return true;
 }
 
-bool Handler_MySQL::attach_User(const QString login, const QString password)
+bool Handler_MySQL::attach_user(const QString &login, const QString &password)
 {
     if (is_block(login)) {
         qDebug() << "The user was blocked";
@@ -99,10 +156,75 @@ bool Handler_MySQL::attach_User(const QString login, const QString password)
     return true;
 }
 
-bool Handler_MySQL::check_user(const QString login, const QString password)
+bool Handler_MySQL::detach_user(const QString &login)
+{
+    if (is_block(login)) {
+        qDebug() << "The user was blocked";
+        return false;
+    }
+    QSqlQuery insertQuery;
+    QString insertQueryStr = "UPDATE users SET attach=:attach WHERE login=:login";
+    insertQuery.prepare(insertQueryStr);
+    insertQuery.bindValue(":attach", false);
+    insertQuery.bindValue(":login", login);
+
+    if (!insertQuery.exec()) {
+        qDebug() << "Unable to update user attach status:" << insertQuery.lastError().text();
+        return false;
+    }
+    return true;
+}
+
+bool Handler_MySQL::block_user(const QString &adm_login, const QString &adm_password, const QString &user)
+{
+    if (user == "admin") {
+        qDebug() << "The admin can't block or unblock";
+        return false;
+    }
+    if (!check_user(adm_login, adm_password)) {
+        qDebug() << "The admin don't find";
+        return false;
+    }
+    QSqlQuery insertQuery;
+    QString insertQueryStr = "UPDATE users SET block=:block WHERE login=:login";
+    insertQuery.prepare(insertQueryStr);
+    insertQuery.bindValue(":block", true);
+    insertQuery.bindValue(":login", user);
+
+    if (!insertQuery.exec()) {
+        qDebug() << "Unable to update user block status:" << insertQuery.lastError().text();
+        return false;
+    }
+    return true;
+}
+
+bool Handler_MySQL::unblock_user(const QString &adm_login, const QString &adm_password, const QString &user)
+{
+    if (user == "admin") {
+        qDebug() << "The admin can't block or unblock";
+        return false;
+    }
+    if (!check_user(adm_login, adm_password)) {
+        qDebug() << "The admin don't find";
+        return false;
+    }
+    QSqlQuery insertQuery;
+    QString insertQueryStr = "UPDATE users SET block=:block WHERE login=:login";
+    insertQuery.prepare(insertQueryStr);
+    insertQuery.bindValue(":block", false);
+    insertQuery.bindValue(":login", user);
+
+    if (!insertQuery.exec()) {
+        qDebug() << "Unable to update user block status:" << insertQuery.lastError().text();
+        return false;
+    }
+    return true;
+}
+
+bool Handler_MySQL::check_user(const QString &login, const QString &password)
 {
     QSqlQuery query;
-    query.prepare("SELECT login FROM users WHERE login = :login AND password = :password");
+    query.prepare("SELECT attach FROM users WHERE login = :login AND password = :password;");
     query.bindValue(":login", login);
     query.bindValue(":password", password);
 
@@ -111,15 +233,14 @@ bool Handler_MySQL::check_user(const QString login, const QString password)
         return false;
     }
     if (query.next()) {
-        bool isBlocked = query.value(0).toBool();
-        return isBlocked;
+        return true;
     } else {
         qDebug() << "User not found";
         return false;
     }
 }
 
-bool Handler_MySQL::is_block(const QString login)
+bool Handler_MySQL::is_block(const QString &login)
 {
     QSqlQuery query;
     query.prepare("SELECT block FROM users WHERE login = :login");
@@ -138,7 +259,7 @@ bool Handler_MySQL::is_block(const QString login)
     }
 }
 
-bool Handler_MySQL::is_user(const QString login)
+bool Handler_MySQL::is_user(const QString &login)
 {
     QSqlQuery query;
     query.prepare("SELECT attach FROM users WHERE login = :login");

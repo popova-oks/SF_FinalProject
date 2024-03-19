@@ -15,7 +15,6 @@ SOURCES += \
     src/main.cpp \
     src/mainwindow.cpp\
     src/chat.cpp\
-    src/messages.cpp\
     src/sha1.cpp\
     src/user_screen.cpp \
     src/widget.cpp
@@ -25,7 +24,6 @@ HEADERS += \
     headers/mainwindow.h\
     headers/ISubject.h\
     headers/chat.h\
-    headers/messages.h\
     headers/sha1.h\
     headers/user_screen.h \
     headers/widget.h
