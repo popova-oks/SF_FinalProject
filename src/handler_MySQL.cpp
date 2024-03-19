@@ -44,10 +44,10 @@ bool Handler_MySQL::createTables()
 
     QString createMessagesTableQuery = "CREATE TABLE IF NOT EXISTS messages ("
                                 "id INTEGER PRIMARY KEY AUTO_INCREMENT, "
-                                "id_reciver INT NOT NULL, "
+                                "id_receiver INT, "
                                 "id_sender INT NOT NULL, "
                                 "message TEXT, "
-                                "CONSTRAINT fk_messages_reciver FOREIGN KEY (id_reciver) REFERENCES users(id)"
+                                "CONSTRAINT fk_messages_receiver FOREIGN KEY (id_sender) REFERENCES users(id)"
                                ");";
     if (!query.exec(createMessagesTableQuery)) {
         qDebug() << "Unable to create a table2: " << query.lastError().text();
@@ -103,6 +103,43 @@ QStringList Handler_MySQL::createListUnblockUsers()
         }
      }
     return users;
+}
+
+QStringList Handler_MySQL::createListPrivateMessages(const QString &receiver)
+{
+    QSqlQuery query;
+    QString queryStr = "SELECT u.login, m.message "
+                       "FROM users u JOIN messages m ON u.id = m.id_sender "
+                       "WHERE m.id_receiver = (SELECT id FROM users WHERE login=:receiver)";
+    query.prepare(queryStr);
+    query.bindValue(":receiver", receiver);
+
+    QStringList messages;
+    if (query.exec()) {
+        while (query.next()) {
+           QString message = query.value(0).toString() + ": " + query.value(1).toString();
+           messages.append(message);
+        }
+    }
+    return messages;
+}
+
+QStringList Handler_MySQL::createListMessagesForAll()
+{
+    QSqlQuery query;
+    QString queryStr = "SELECT u.login, m.message "
+                       "FROM users u JOIN messages m ON u.id = m.id_sender "
+                       "WHERE m.id_receiver = 0 ;";
+    query.prepare(queryStr);
+
+    QStringList messages;
+    if (query.exec()) {
+        while (query.next()) {
+           QString message = query.value(0).toString() + ": " + query.value(1).toString();
+           messages.append(message);
+        }
+    }
+    return messages;
 }
 
 bool Handler_MySQL::add_user(const QString &login, const QString &password)
@@ -173,6 +210,52 @@ bool Handler_MySQL::detach_user(const QString &login)
         return false;
     }
     return true;
+}
+
+bool Handler_MySQL::add_message(const QString &sender, const QString &receiver, const QString &message)
+{
+     if (is_block(receiver)) {
+         qDebug() << "The receiver was blocked";
+         return false;
+     }
+     if (is_block(sender)) {
+         qDebug() << "The sender was blocked";
+         return false;
+     }
+     if (receiver != "all") {
+         if (!is_user(receiver)) {
+             qDebug() << "The receiver was not found";
+             return false;
+         }
+     }
+     if (!is_user(sender)) {
+         qDebug() << "The sender was not found";
+         return false;
+     }
+     QSqlQuery insertQuery;
+     if (receiver == "all") {
+         QString insertQueryStr = "INSERT INTO messages (id_sender, id_receiver, message) "
+                                  "VALUES ((SELECT id FROM users WHERE login=:sender), "
+                                  "0, :message);";
+         insertQuery.prepare(insertQueryStr);
+         insertQuery.bindValue(":sender", sender);
+         insertQuery.bindValue(":message", message);
+     } else {
+         QString insertQueryStr = "INSERT INTO messages (id_sender, id_receiver, message) "
+                                  "VALUES ((SELECT id FROM users WHERE login=:sender), "
+                                  "(SELECT id FROM users WHERE login=:receiver), "
+                                  ":message);";
+
+         insertQuery.prepare(insertQueryStr);
+         insertQuery.bindValue(":sender", sender);
+         insertQuery.bindValue(":receiver", receiver);
+         insertQuery.bindValue(":message", message);
+     }
+     if (!insertQuery.exec()) {
+         qDebug() << "Unable to perform insert operation:" << insertQuery.lastError().text();
+         return false;
+     }
+     return true;
 }
 
 bool Handler_MySQL::block_user(const QString &adm_login, const QString &adm_password, const QString &user)

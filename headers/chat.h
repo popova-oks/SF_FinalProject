@@ -18,6 +18,8 @@ class Chat : public ISubject {
     QStringList attachedUsers();
     QStringList listBlockedUsers();
     QStringList listUnblockedUsers();
+    QStringList privateMessages(const QString &receiver);
+    QStringList messagesForAll();
 private:
     Handler_MySQL* db_mysql_;
 };

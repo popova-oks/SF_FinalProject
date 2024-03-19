@@ -23,17 +23,16 @@ MainWindow::~MainWindow()
 void MainWindow::add_items()
 {
     QMenuBar *menuBar_ = new QMenuBar(this);
-    menuBar_->setStyleSheet("color: red; font-size: 14pt; font-weight: bold;");
+    QMenu *pmnu_ = new QMenu("&Menu", this);
+    QMenu *pmnu_user = new QMenu ("&Attach and detach user", this);
+    menuBar_->setStyleSheet("color: red; font-size: 12pt; font-weight: bold;");
 
-    QMenu *pmnu_ = new QMenu("&Menu");
+    pmnu_user->addAction("&Log in or sign in", this, &MainWindow::on_actionOpenClient_triggered, Qt::CTRL+Qt::Key_L);
+    pmnu_user->addAction("&Close this client", this, &MainWindow::on_actionCloseThisClient_triggered, Qt::CTRL+Qt::Key_E);
 
-    pmnu_->addAction("&Log in or sign in", this, &MainWindow::on_actionOpenClient_triggered, Qt::CTRL+Qt::Key_L);
-    pmnu_->addAction("&Close this client", this, &MainWindow::on_actionCloseThisClient_triggered, Qt::CTRL+Qt::Key_E);
-
-    pmnu_->addSeparator();
     QMenu* adminSuЬMenu = new QMenu("&Admin", pmnu_);
     pmnu_->addMenu(adminSuЬMenu);
-    adminSuЬMenu->addAction("&Block this client", this, &MainWindow::on_actionBlockThisClient_triggered,
+    adminSuЬMenu->addAction("&Block the client", this, &MainWindow::on_actionBlockThisClient_triggered,
                             Qt::CTRL+Qt::Key_B);
     adminSuЬMenu->addAction("&Unblock the client", this, &MainWindow::on_actionUnblockClient_triggered,
                             Qt::CTRL+Qt::Key_U);
@@ -42,6 +41,7 @@ void MainWindow::add_items()
     pmnu_->addAction("&Quit", this, &MainWindow::close, Qt::CTRL+Qt::Key_Q);
 
     menuBar_->addMenu(pmnu_);
+    menuBar_->addMenu(pmnu_user);
     setMenuBar(menuBar_);
 }
 

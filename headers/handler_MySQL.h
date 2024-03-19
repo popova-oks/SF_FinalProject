@@ -16,6 +16,8 @@ public:
     QStringList createListUsers();
     QStringList createListBlockUsers();
     QStringList createListUnblockUsers();
+    QStringList createListPrivateMessages(const QString &receiver);
+    QStringList createListMessagesForAll();
 
     bool add_user(const QString &login, const QString &password);
     bool attach_user(const QString &login, const QString &password);

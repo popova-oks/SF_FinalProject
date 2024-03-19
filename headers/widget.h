@@ -18,18 +18,26 @@ public:
     bool detach_user ();
     bool block_user();
     bool unblock_user();
+    bool send_message();
     void update_curr_user(QString &login);
 public slots:
     void update_startScreen();
+private slots:
+    void slotButtonSendMessage();
 private:
     Chat *chatPtr_;
     QLabel *curr_user_;
     QListWidget *widget_listUsers_;
+    QListWidget *widget_listMessage_;
+    QListWidget *widget_listPrivateMessage_;
     QGridLayout *start_screen_;
+    QLineEdit *textMessage_;
+    QLineEdit *receiver_;
 
     void add_items();
     QString get_curr_user() const;
     void get_attachedUsers();
+    void get_messages();
     QString chouse_user();
 
 };

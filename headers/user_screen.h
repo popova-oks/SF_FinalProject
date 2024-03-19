@@ -13,6 +13,7 @@ class UserScreen : public QDialog
     void login_form ();
     void close_form (const QString &client);
     void block_form (const QString &client);
+    void message_form (const QString &sender, const QString &receiver, const QString &message);
     const QString &get_login() const;
     const QString &get_password() const;
     int get_index() const;

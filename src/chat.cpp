@@ -25,6 +25,10 @@ bool Chat::addUser(const QString &login, const QString &password)
 
 bool Chat::sendMessage(const QString &sender, const QString &receiver, const QString &message)
 {
+    if (!db_mysql_->add_message (sender, receiver, message)) {
+        qDebug() << "Failed to send the message";
+        return false;
+    }
     return true;
 }
 
@@ -76,6 +80,16 @@ QStringList Chat::listBlockedUsers()
 QStringList Chat::listUnblockedUsers()
 {
     return db_mysql_->createListUnblockUsers();
+}
+
+QStringList Chat::privateMessages(const QString &receiver)
+{
+    return db_mysql_->createListPrivateMessages(receiver);
+}
+
+QStringList Chat::messagesForAll()
+{
+    return db_mysql_->createListMessagesForAll();
 }
 
 

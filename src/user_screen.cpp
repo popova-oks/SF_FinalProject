@@ -217,6 +217,52 @@ void UserScreen::block_form(const QString &client)
       setLayout(mainLayout);
 }
 
+void UserScreen::message_form(const QString &sender, const QString &receiver, const QString &message)
+{
+    // Установка заголовка
+    setWindowTitle("The message");
+
+    // Создаем виджеты, которые будут добавлены в форму
+     ptopWidget1_ = new QWidget (this);
+
+     // Создаем метки для каждого экрана
+     QString str_sender = "Sender: " + sender;
+     QString str_receiver = "Receiver: " + receiver;
+     QString str_message = "Message: " + message;
+     QLabel* label1  = new QLabel(str_sender);
+     QLabel* label2  = new QLabel(str_receiver);
+     QLabel* label3  = new QLabel(str_message);
+     QLabel* label4  = new QLabel("Do you want to send the message? ");
+
+     label4->setStyleSheet("color: red; font-size: 12pt; font-weight: bold;");
+
+     // Создаем кнопки
+     QPushButton *pcmdOk = new QPushButton("&Ok");
+     QPushButton *pcmdCancel = new QPushButton("&Cancel");
+
+     connect(pcmdOk, SIGNAL(clicked()), this, SLOT(accept()));
+     connect(pcmdCancel, SIGNAL(clicked()), this, SLOT(reject()));
+
+     // Создаем макеты для каждого экрана
+     QGridLayout* ptopLayout = new QGridLayout();
+
+     // Добавляем элементы в макет экрана входа
+     ptopLayout->addWidget(label1, 0, 0);
+     ptopLayout->addWidget(label2, 1, 0);
+     ptopLayout->addWidget(label3, 2, 0);
+     ptopLayout->addWidget(label4, 3, 0);
+     ptopLayout->addWidget(pcmdOk, 4, 1);
+     ptopLayout->addWidget(pcmdCancel, 4, 2);
+
+     // Устанавливаем макеты для каждого экрана
+     ptopWidget1_->setLayout(ptopLayout);
+
+     // Отобразим окно
+      QVBoxLayout * mainLayout = new QVBoxLayout(this);
+      mainLayout->addWidget(ptopWidget1_);
+      setLayout(mainLayout);
+}
+
 const QString &UserScreen::get_login() const
 {
     return login_;

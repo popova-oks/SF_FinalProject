@@ -1,17 +1,20 @@
-#include "../headers/widget.h"
+﻿#include "../headers/widget.h"
 #include "../headers/chat.h"
 #include <QMenu>
 #include <QStringList>
 #include <QListWidget>
 #include <QTimer>
 
-
 Widget::Widget(QWidget *parent, Chat* chatPtr)
 : QWidget::QWidget(parent)
 , chatPtr_ {nullptr}
 , curr_user_ {nullptr}
 , widget_listUsers_ {nullptr}
+, widget_listMessage_ {nullptr}
+, widget_listPrivateMessage_ {nullptr}
 , start_screen_ {nullptr}
+, textMessage_ {nullptr}
+, receiver_ {nullptr}
 {
     // создаем базу данных
     if (chatPtr_) {
@@ -140,6 +143,34 @@ bool Widget::unblock_user()
     return false;
 }
 
+bool Widget::send_message()
+{
+    QString message = textMessage_->text();
+    QString receiver = receiver_->text();;
+    QString sender = get_curr_user();
+
+    if (message.isEmpty() || receiver.isEmpty() || sender.isEmpty()) {
+        return false;
+    } else {
+        UserScreen userScreen;
+        userScreen.message_form(sender, receiver, message);
+
+        auto result = userScreen.exec();
+        if (result == QDialog::Rejected) {
+            return false;
+        }
+        if (result == QDialog::Accepted) {
+            if (chatPtr_) {
+                if (!chatPtr_->sendMessage(sender, receiver, message)) {
+                   return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+}
+
 void Widget::update_curr_user(QString &login)
 {
     if (!login.isEmpty()){
@@ -175,6 +206,51 @@ void Widget::get_attachedUsers()
     widget_listUsers_ = listUsers;
     // Включаем возможность выбора пользователей
     widget_listUsers_->setSelectionMode(QAbstractItemView::SingleSelection);
+}
+
+void Widget::get_messages()
+{
+    if(widget_listMessage_ != nullptr) {
+        delete widget_listMessage_;
+        widget_listMessage_ = nullptr;
+    }
+    if(widget_listPrivateMessage_ != nullptr) {
+        delete widget_listPrivateMessage_;
+        widget_listPrivateMessage_ = nullptr;
+    }
+    QListWidget *listMessages = new QListWidget(this);
+    QListWidget *listPrivateMessages = new QListWidget(this);
+    if (get_curr_user() == "no user") {
+        listPrivateMessages->addItem("No private messages available");
+    } else {
+        if (chatPtr_) {
+            QStringList list_messages = chatPtr_->privateMessages(get_curr_user());
+            if (list_messages.isEmpty()) {
+                listPrivateMessages->addItem("No users available");
+            } else {
+                std::sort(list_messages.begin(), list_messages.end());
+                listPrivateMessages->addItems(list_messages);
+            }
+        } else {
+            // Если указатель chatPtr_ равен nullptr, добавляем пустой элемент в список
+            listPrivateMessages->addItem("No users available");
+        }
+    }
+    if (chatPtr_) {
+        QStringList list_messages = chatPtr_->messagesForAll();
+        if (list_messages.isEmpty()) {
+            listMessages->addItem("No users available");
+        } else {
+            std::sort(list_messages.begin(), list_messages.end());
+            listMessages->addItems(list_messages);
+        }
+    } else {
+        // Если указатель chatPtr_ равен nullptr, добавляем пустой элемент в список
+        listMessages->addItem("No users available");
+    }
+
+    widget_listPrivateMessage_ = listPrivateMessages;
+    widget_listMessage_ = listMessages;
 }
 
 QString Widget::chouse_user()
@@ -248,26 +324,71 @@ QString Widget::chouse_user()
 void Widget::update_startScreen()
 {
     get_attachedUsers();
+    get_messages();
     start_screen_->addWidget(widget_listUsers_, 2, 0);
+    start_screen_->addWidget(widget_listMessage_, 2, 1, 2, 1);
+    start_screen_->addWidget(widget_listPrivateMessage_, 2, 2, 2, 1);
+}
+
+void Widget::slotButtonSendMessage()
+{
+    if (!send_message()) {
+        QMessageBox::critical(this,
+                              tr("Error"),
+                              tr("Message could not be sent!") + "!");
+        return;
+    } else {
+        update_startScreen();
+    }
+
 }
 
 void Widget::add_items()
 {    
-    QLabel *label = new QLabel("Current user: ");
-    QFont font("Arial", 14);
-    label->setFont(font);
+    QLabel *label1 = new QLabel("Current user: ", this);
+    label1->setStyleSheet("color: blue; font-size: 12pt; font-weight: bold;");
+    QLabel *label2 = new QLabel("Messages for all: ", this);
+    label2->setStyleSheet("color: blue; font-size: 12pt; font-weight: bold;");
+    QLabel *label3 = new QLabel("Private messages: ", this);
+    label3->setStyleSheet("color: blue; font-size: 12pt; font-weight: bold;");
 
     curr_user_ = new QLabel("no user");
-    curr_user_->setFont(font);
-    curr_user_->setStyleSheet("color: blue;");
+    curr_user_->setStyleSheet("color: red; font-size: 12pt; font-weight: bold;");
+    label1->setBuddy(curr_user_);
 
-    label->setBuddy(curr_user_);    
     get_attachedUsers();
+    widget_listMessage_= new QListWidget (this);
+    widget_listPrivateMessage_ = new QListWidget (this);
+
+    QLabel *label4 = new QLabel("Messages: ", this);
+    label4->setStyleSheet("color: blue; font-size: 12pt; font-weight: bold;");
+    textMessage_ = new QLineEdit(this);
+    label4->setBuddy(textMessage_);
+
+    QLabel *label5 = new QLabel("Receiver (all or one user): ", this);
+    label5->setStyleSheet("color: blue; font-size: 12pt; font-weight: bold;");
+    receiver_ = new QLineEdit(this);
+    label5->setBuddy(receiver_);
+
+    QPushButton *button_sendMessage = new QPushButton("Send Message", this);
+    button_sendMessage->setStyleSheet("font-size: 12pt; font-weight: bold; color: blue;");
+    connect(button_sendMessage, SIGNAL(clicked()), this, SLOT(slotButtonSendMessage()));
 
     start_screen_ = new QGridLayout(this);
-    start_screen_->addWidget(label, 1, 0);
-    start_screen_->addWidget(curr_user_, 1, 1);
-    start_screen_->addWidget(widget_listUsers_, 2, 0);
+    start_screen_->addWidget(label1, 0, 0);
+    start_screen_->addWidget(curr_user_, 1, 0);
+    start_screen_->addWidget(label2, 1, 1);
+    start_screen_->addWidget(label3, 1, 2);
+
+    start_screen_->addWidget(widget_listUsers_, 2, 0, 2, 1);
+    start_screen_->addWidget(widget_listMessage_, 2, 1, 2, 1);
+    start_screen_->addWidget(widget_listPrivateMessage_, 2, 2, 2, 1);
+
+    start_screen_->addWidget(label4, 4, 0);
+    start_screen_->addWidget(textMessage_, 4, 1, 1, 2);
+    start_screen_->addWidget(label5, 5, 0);
+    start_screen_->addWidget(receiver_, 5, 1, 1, 2);
+    start_screen_->addWidget(button_sendMessage, 6, 1, 1, 1);
+
     setLayout(start_screen_);
 }
-
