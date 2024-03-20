@@ -9,20 +9,9 @@
 
 UserScreen::UserScreen(QWidget *parent)
     : QDialog(parent)
-    , stackedWidget_{nullptr}
-    //, ptopWidget1_ {nullptr}
-    //, ptopWidget2_ {nullptr}
-{}
+    , stackedWidget_{nullptr}{}
 
 UserScreen::~UserScreen(){
-    /*
-    if (ptopWidget1_ != nullptr) {
-        delete ptopWidget1_;
-    }
-    if (ptopWidget2_ != nullptr) {
-        delete ptopWidget2_;
-    }
-    */
     if (stackedWidget_) {
         delete stackedWidget_;
         stackedWidget_ = nullptr;

@@ -8,13 +8,9 @@
 Widget::Widget(QWidget *parent, Chat* chatPtr)
 : QWidget::QWidget(parent)
 , chatPtr_ {nullptr}
-//, curr_user_ {nullptr}
 , widget_listUsers_ {nullptr}
 , widget_listMessage_ {nullptr}
 , widget_listPrivateMessage_ {nullptr}
-//, start_screen_ {nullptr}
-//, textMessage_LineEdit {nullptr}
-//, receiver_LineEdit {nullptr}
 {
     // создаем базу данных
     if (chatPtr_) {
@@ -68,7 +64,6 @@ bool Widget::update_user() {
             update_curr_user (curr_login);
             return true;
         }
-
     }
     return false;
 }
@@ -404,6 +399,5 @@ void Widget::add_items()
     start_screen_->addWidget(label5, 5, 0);
     start_screen_->addWidget(receiver_LineEdit, 5, 1, 1, 2);
     start_screen_->addWidget(button_sendMessage, 6, 1, 1, 1);
-
     setLayout(start_screen_);
 }

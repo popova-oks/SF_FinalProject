@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SHA1_H
+#define SHA1_H
+
 #include <string>
 using namespace std;
 typedef unsigned int uint;
@@ -25,3 +27,5 @@ uint cycle_shift_left(uint val, int bit_count);
 uint bring_to_human_view(uint val);
 
 std::string sha1(const std::string &password);
+
+#endif // SHA1_H

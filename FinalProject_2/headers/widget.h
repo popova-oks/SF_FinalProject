@@ -7,7 +7,6 @@
 #include "chat.h"
 #include "user_screen.h"
 
-
 class Widget : public QWidget
 {
     Q_OBJECT
@@ -41,7 +40,5 @@ private:
     void get_attachedUsers();
     void get_messages();
     QString choose_user();
-
 };
-
 #endif // WIDGET_H

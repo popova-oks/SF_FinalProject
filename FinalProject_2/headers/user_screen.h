@@ -38,6 +38,4 @@ private:
     void onLoggedIn();
     void onSignedIn();
 };
-
-
 #endif // USER_SCREEN_H

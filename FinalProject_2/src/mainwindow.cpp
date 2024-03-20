@@ -63,7 +63,6 @@ void MainWindow::on_actionCloseClient_triggered()
         QString none = "no user";
         widget_->update_curr_user(none);
         widget_->update_startScreen();
-
     }
 }
 
